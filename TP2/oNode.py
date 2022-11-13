@@ -3,6 +3,9 @@ import threading
 import pickle
 import sys
 
+
+
+
 class server(threading.Thread):
     def __init__(self,bootstrapper):
         threading.Thread.__init__(self)
@@ -12,9 +15,16 @@ class server(threading.Thread):
     # helper function to execute the requests
     def run(self):
 
-        #get neighbours list
 
-        neighboursList = messageSender(1234,self.bootstrapper,'NEEDS THE NEIGHBOURS LIST',True)
+        neighboursList = []
+        #get neighbours list
+        m =  messageSender(1234,self.bootstrapper,'NEEDS THE NEIGHBOURS LIST',True,neighboursList)
+        m.start()
+        m.join()
+
+
+
+        print(neighboursList)
 
         print('peer staring')
         port = 1234 
@@ -37,12 +47,13 @@ class server(threading.Thread):
         conn.close()  # close the connection
 
 class messageSender(threading.Thread):
-    def __init__(self,port_to_connect,host_to_connect,message,wait):
+    def __init__(self,port_to_connect,host_to_connect,message,wait,data):
         threading.Thread.__init__(self)
         self.portToConnect = port_to_connect
         self.hostToConnect = host_to_connect
         self.message = message
         self.wait = wait
+        self.data = data
  
     
     def run(self):
@@ -51,16 +62,14 @@ class messageSender(threading.Thread):
         client_socket = socket.socket()  # instantiate
         client_socket.connect((self.hostToConnect, self.portToConnect))  # connect to the server
         client_socket.send(self.message.encode())  # send message
-        
-        data = ''
-
+    
         if self.wait : 
             data = client_socket.recv(1024)  # receive response
-            print('Response from peer ' + self.hostToConnect + ' : ' + str(pickle.loads(data)))
 
         client_socket.close()  # close the connection
 
-        return data
+        self.data.append(pickle.loads(data))
+        
 
         
 

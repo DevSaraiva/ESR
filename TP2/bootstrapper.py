@@ -75,7 +75,7 @@ class server(threading.Thread):
 
             for key,value in dicTopo.items():
                 
-                if address in value['names']:
+                if address[0] in value['names']:
                     print('sendig neighbours to ' + key)
                     neighboursList = value['neighbours']
 
