@@ -2,87 +2,35 @@ import socket
 import threading
 import pickle
 import sys
+import database
+from threading import Thread
 
 
+#Inizialize the connection with the server to get neighbours list
 
-
-class server(threading.Thread):
-    def __init__(self,bootstrapper):
-        threading.Thread.__init__(self)
-        self.bootstrapper = bootstrapper
-
- 
-    # helper function to execute the requests
-    def run(self):
-
-
-        neighboursList = []
-        #get neighbours list
-        m =  messageSender(1234,self.bootstrapper,'NEEDS THE NEIGHBOURS LIST',True,neighboursList)
-        m.start()
-        m.join()
-
-
-
-        print(neighboursList)
-
-        print('peer staring')
-        port = 1234 
-
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # get instance
-        server_socket.bind(('0.0.0.0', port))  # bind host address and port together
-
-        server_socket.listen(5) # configures how many client the server can listen simultaneously
-        
-        conn, address = server_socket.accept()  # accept new connection
-        print("Connection from: " + str(address))
-        while True:
-            # receive data stream. it won't accept data packet greater than 1024 bytes
-            data = conn.recv(1024)
-            if not data:
-                break
-            print("from connected user: " + pickle.loads(data))
-            
-
-        conn.close()  # close the connection
-
-class messageSender(threading.Thread):
-    def __init__(self,port_to_connect,host_to_connect,message,wait,data):
-        threading.Thread.__init__(self)
-        self.portToConnect = port_to_connect
-        self.hostToConnect = host_to_connect
-        self.message = message
-        self.wait = wait
-        self.data = data
- 
     
-    def run(self):
+def connectionRequest(port_to_connect,host_to_connect,message,database):
 
-        print('sending message')
+        print('Requesting Neighbours...')
         client_socket = socket.socket()  # instantiate
-        client_socket.connect((self.hostToConnect, self.portToConnect))  # connect to the server
-        client_socket.send(self.message.encode())  # send message
+        client_socket.connect((host_to_connect, port_to_connect))  # connect to the server
+        client_socket.send(message.encode())  # send message
     
-        if self.wait : 
-            data = client_socket.recv(1024)  # receive response
+        data = client_socket.recv(1024)  # receive response
 
         client_socket.close()  # close the connection
 
-        self.data.append(pickle.loads(data))
+        database.putNeighbours(pickle.loads(data))
         
-
-        
-
-
-
 
 if __name__ == '__main__':
 
+    database = database.database()
     bootstrapper = sys.argv[1]
+    Thread(target=connectionRequest, args = (1234,bootstrapper,'NEEDS THE NEIGHBOURS LIST',database)).start()
+   
 
-    server = server(bootstrapper)
 
-    server.start()
 
 
 
