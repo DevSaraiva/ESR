@@ -68,7 +68,21 @@ def initializeConnections(topo, database):
         conn, address = server_socket.accept()  # accept new connection
         Thread(target=initializeConnectionsWorker, args = (conn,address,dicTopo,database)).start()
     
+# Listen connections 
 
+def listenConnections():
+
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.bind(('', 5555))  
+        server_socket.listen(10)
+        
+        while True:
+                print('listenning')
+                conn, address = server_socket.accept()  # accept new connection
+                data = conn.recv(1024).decode()
+                print(data, 'from ' + address[0])
+                message = "NAK"
+                conn.send(message.encode())
 
 
 if __name__ == '__main__':
