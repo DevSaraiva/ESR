@@ -2,7 +2,7 @@ node n1 {
     type router
     model host
     network-config {
-	hostname n16
+	hostname O1
 	!
 	interface eth0
 	 ip address 10.0.0.10/24
@@ -19,7 +19,7 @@ node n4 {
     type router
     model router
     network-config {
-	hostname n10
+	hostname O2
 	!
 	interface eth1
 	 ip address 10.0.0.1/24
@@ -132,7 +132,7 @@ node n8 {
     type router
     model router
     network-config {
-	hostname n5
+	hostname O3
 	!
 	interface eth4
 	 ip address 10.0.17.1/24
@@ -169,7 +169,7 @@ node n9 {
     type router
     model router
     network-config {
-	hostname n7
+	hostname O7
 	!
 	interface eth4
 	 ip address 10.0.18.1/24
@@ -238,7 +238,7 @@ node n11 {
     type router
     model router
     network-config {
-	hostname n2
+	hostname O5
 	!
 	interface eth3
 	 ip address 10.0.20.1/24
@@ -292,7 +292,7 @@ node n13 {
     type router
     model router
     network-config {
-	hostname n1
+	hostname O6
 	!
 	interface eth3
 	 ip address 10.0.19.1/24
@@ -324,7 +324,7 @@ node n16 {
     type router
     model PC
     network-config {
-	hostname n24
+	hostname O4
 	!
 	interface eth0
 	 ip address 10.0.17.21/24
@@ -380,7 +380,7 @@ node n18 {
     type router
     model PC
     network-config {
-	hostname n21
+	hostname O8
 	!
 	interface eth0
 	 ip address 10.0.18.21/24
@@ -410,7 +410,7 @@ node n21 {
     type router
     model PC
     network-config {
-	hostname n19
+	hostname O9
 	!
 	interface eth0
 	 ip address 10.0.19.20/24
@@ -441,7 +441,7 @@ node n24 {
     type router
     model PC
     network-config {
-	hostname n17
+	hostname O11
 	!
 	interface eth0
 	 ip address 10.0.20.20/24
@@ -458,7 +458,7 @@ node n25 {
     type router
     model PC
     network-config {
-	hostname n18
+	hostname O10
 	!
 	interface eth0
 	 ip address 10.0.20.21/24
