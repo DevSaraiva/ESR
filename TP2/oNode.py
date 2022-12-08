@@ -7,6 +7,7 @@ import time
 from time import sleep
 import re
 import netifaces
+import ServerWorker
 
 
 #Inizialize the connection with the server to get neighbours list
@@ -175,12 +176,39 @@ def receiveStatusServerNetwork(database):
                                         pass
                                         
 
+def server(port):
+    try:
+        SERVER_PORT = int(port)
+    except:
+        print("[Usage: Server.py Server_port]\n")
+    rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    rtspSocket.bind(('', SERVER_PORT))
+    rtspSocket.listen(5)    
+    # Receive client info (address,port) through RTSP/TCP session
+    while True:
+        clientInfo = {}
+        clientInfo['rtspSocket'] = rtspSocket.accept()
+        ServerWorker.ServerWorker(clientInfo).run()           
+
+def clientConnections():
+
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.bind(('', 2555))  
+        server_socket.listen(10)        # 10 conexoes no maximo
+        
+        while True:
+                conn, address = server_socket.accept()  # accept new connection
+                port = conn.recv(1024).decode()
+                print(port, 'from ' + address[0])
+                Thread(target=server, args = (port,)).start()
+
+
 if __name__ == '__main__':
 
         database = database.database()
         bootstrapper = sys.argv[1]
         Thread(target=neighboursRequest, args = (bootstrapper,database)).start()
-        
+        Thread(target=clientConnections, args = ()).start()
        
         
         
