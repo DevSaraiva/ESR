@@ -11,7 +11,6 @@ import netifaces
 
 #Inizialize the connection with the server to get neighbours list
 
-    
 def neighboursRequest(host_to_connect,database):
 
         port_to_connect = 1111
@@ -175,8 +174,6 @@ def receiveStatusServerNetwork(database):
                                     except:
                                         pass
                                         
-
-
 
 if __name__ == '__main__':
 
