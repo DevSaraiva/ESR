@@ -1,10 +1,20 @@
+import socket
+
 class database:
     neighbours : list
-    neighboursConnection : dict
+    serversNeighbours : list
+    serverStatus : dict
 
     def __init__(self):
         self.neighbours = []
         self.neighboursConnection = {}
+        self.serverStatus = {}
+
+    def putServersNeighbours(self,neighbours):
+        self.serversNeighbours = neighbours
+
+    def getServersNeighbours(self):
+        return self.neighbours
 
 
     def putNeighbours(self,neighbours):
@@ -13,13 +23,11 @@ class database:
     def getNeighbours(self):
         return self.neighbours
 
-    def putConnection(self,neighbour,connection):
-        self.neighboursConnection[neighbour] = connection
+    def putConnectionServerStatus(self,neighbour,connection):
+        self.serverStatus[neighbour] = connection
 
-    def getConnection(self,neighbour):
-        if neighbour in self.neighboursConnection.keys():
-            return self.neighboursConnection[neighbour]
-        else:
-            return True
+    def getConnectionServerStatus(self,neighbour):
+            return self.serverStatus[neighbour]
+            
 
 
