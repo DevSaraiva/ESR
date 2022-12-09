@@ -6,6 +6,7 @@ import pickle
 import b_database
 from time import sleep
 import time
+import os
 
 
 def readConfigFile(topo):
@@ -57,8 +58,6 @@ def sendStatusServerNetwork(database):
     status_socket = socket.socket()  # instantiate
     myname = socket.gethostname()
     neighbours = database.getTopo()[myname]['neighbours']
-
-
     while True:
 
         for neighbour in neighbours:
@@ -77,12 +76,30 @@ def sendStatusServerNetwork(database):
 
 
             
-
-    
-    
-   
-
-
+def readVideoFile(filename, b_database):
+    print("Reading Video File and saving to database...")
+    try:
+        file = open(filename, 'rb')
+    except:
+        print("Error opening file!")
+        raise IOError
+    frameNum = 0
+    buffer = []
+    ###### Get next frame (nextFrame from VideoStream.py)
+    file_stats = os.stat(filename)
+    unread_FileSize_bytes = file_stats.st_size  #here it represents the total size of the file in bytes, because none was read untill now
+    print(f'File Size in Bytes is {unread_FileSize_bytes}')
+    while (unread_FileSize_bytes ) > 0:
+        data = file.read(5) # Get the framelength from the first 5 bytes
+        if data:
+            frameLenght = int(data)
+            #Read the current frame
+            data = file.read(frameLenght)
+            buffer.append(data)
+            frameNum += 1
+        b_database.setFile(buffer)   
+        print(f"Frame number {frameNum} read")
+        unread_FileSize_bytes = unread_FileSize_bytes - 5 - frameLenght
 
 
 
@@ -93,6 +110,6 @@ if __name__ == '__main__':
 
     Thread(target=initializeConnections, args = (database,)).start()
     Thread(target=sendStatusServerNetwork, args = (database,)).start()
-
-
+    Thread(target=readVideoFile, args=(sys.argv[2], database)).start()
+    print(database.getFile())
     
