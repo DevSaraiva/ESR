@@ -118,7 +118,6 @@ def receiveStreamVerification(database):
                                         if s[0] == 'filename':
                                                 filename = filename + s[1]
                                         
-                                        
                                         database.putRouteStreamDict(filename,neighbour,metricsDict)
                                         
 
