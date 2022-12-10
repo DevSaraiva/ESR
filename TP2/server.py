@@ -76,7 +76,7 @@ def sendStatusServerNetwork(database):
 
 
             
-def readVideoFile(filename, b_database):
+def readVideoFile(filename, b_database, ipReceiver):
     print("Reading Video File and saving to database...")
     try:
         file = open(filename, 'rb')
@@ -96,10 +96,24 @@ def readVideoFile(filename, b_database):
             #Read the current frame
             data = file.read(frameLenght)
             buffer.append(data)
-            frameNum += 1
-        b_database.setFile(buffer)   
+            frameNum += 1 
         print(f"Frame number {frameNum} read")
         unread_FileSize_bytes = unread_FileSize_bytes - 5 - frameLenght
+    b_database.setFile(buffer)  
+    sendVideoFile(ipReceiver, 2345, b_database)
+
+
+
+def sendVideoFile(address, port, b_database):
+    print(f'Sending video file to node via port {port}')
+    send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    file = b_database.getFile()
+    i = 0
+    for pos in file:
+        #print(pos)
+        send_socket.sendto(pos, (address, port))
+        i += 1
+        print("i = " + str(i))
 
 
 
@@ -107,9 +121,9 @@ if __name__ == '__main__':
 
     database = b_database.b_database()
     database.setTopo(readConfigFile(sys.argv[1]))
+    ipReceiver = sys.argv[3]
 
     Thread(target=initializeConnections, args = (database,)).start()
     Thread(target=sendStatusServerNetwork, args = (database,)).start()
-    Thread(target=readVideoFile, args=(sys.argv[2], database)).start()
-    print(database.getFile())
+    Thread(target=readVideoFile, args=(sys.argv[2], database, ipReceiver,)).start()    
     

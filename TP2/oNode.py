@@ -278,13 +278,30 @@ def clientConnections(database):
                 Thread(target=server, args = (database)).start()
 
 
+
+def receiveVideo(addr, port):
+        buffer = []
+        socket_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        socket_receive.bind(('', port))
+        i = 0
+        while True:
+                data, address = socket_receive.recvfrom(1024)
+                i += 1
+                print("i = " + str(i))
+                buffer.append(data)
+                #print(str(data), flush=True)
+
+
+
+
+
 if __name__ == '__main__':
 
         database = database.database()
         bootstrapper = sys.argv[1]
         Thread(target=neighboursRequest, args = (bootstrapper,database)).start()
         Thread(target=clientConnections, args = (database,)).start()
-       
+        Thread(target=receiveVideo, args= ('', 2345,)).start()
         
         
    
