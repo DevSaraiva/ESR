@@ -20,8 +20,28 @@ class ServerWorker:
 	
 	clientInfo = {}
 	
-	def __init__(self, clientInfo):
+
+	def getStream(database,filename):
+		
+		#verificar se já tem a stream
+		stream = database.getStream(filename)
+
+		if(stream == False):
+			#verificar se os vizinhos tem a stream
+			pass
+            
+
+		
+		#pedir ao servidor a stream
+
+
+
+
+
+
+	def __init__(self, clientInfo,database):
 		self.clientInfo = clientInfo
+		self.database = database
 		
 	def run(self):
 		threading.Thread(target=self.recvRtspRequest).start()
@@ -55,7 +75,7 @@ class ServerWorker:
 				print("processing SETUP\n")
 				
 				try:
-					self.clientInfo['videoStream'] = VideoStream(filename)
+					self.clientInfo['videoStream'] = VideoStream(filename, self.database)
 					self.state = self.READY
 				except IOError:
 					self.replyRtsp(self.FILE_NOT_FOUND_404, seq[1])

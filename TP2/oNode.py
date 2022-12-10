@@ -10,6 +10,128 @@ import netifaces
 import ServerWorker
 
 
+
+
+
+def getMyNames():
+        mynames = []
+        index = 0
+        for interface in netifaces.interfaces():
+                if(index != 0):
+                        for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+                                    mynames.append(link['addr'])
+                index = index + 1
+        return mynames
+
+
+def verifyStreamInNeighbourHood(database, filename,visited):
+        
+        mynames = getMyNames()
+        newvisited = ""
+        index = 0
+        if len(visited) != 0:
+                for vis in visited:
+                        if(index == 0):
+                                newvisited = newvisited + vis
+                        else:
+                                newvisited = newvisited + ',' + vis
+                        index = index + 1
+                for name in mynames:
+                        newvisited = newvisited + ',' + name
+                        
+        else:
+                for name in mynames:
+                        if index == 0 :newvisited = newvisited + name
+                        else: visited = newvisited + ',' + name
+                        index = index + 1
+
+        responses = []
+
+        for neighbour in database.getNeighbours():
+                if neighbour not in visited:
+                        stream_socket = socket.socket()  # instantiate
+                        stream_socket.connect((neighbour, 8888))  # connect to the server
+                        message = f'filename:{filename} visited:{newvisited} '
+                        stream_socket.send(message.encode())  # send message
+
+                        response = stream_socket.recv(1024).decode()
+
+                        
+                        if response != 'NAK':
+                                responses.append(f'filename:{filename} neighbour:{neighbour} {response}')
+                        
+        
+        return responses
+
+
+def receiveStreamVerification(database):
+        
+        verification_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        verification_socket.bind(('', 888))  
+        verification_socket.listen(10)
+
+        while True:
+                conn, address = verification_socket.accept()
+
+                data = conn.recv(1024)
+
+                msg = data.decode()
+
+               
+                
+                verificationDict = {}
+                
+                for string in splitted:
+                    s = re.split(r':',string)
+                    if s[0] == 'filename':
+                        verificationDict['filename'] = s[1]
+
+                    if s[0] == 'visited':
+                        visited = re.split(',',s[1])
+                        if '' in visited : visited.remove('')
+                        verificationDict['visited'] = visited
+                
+                #verificar se já tem a stream
+
+                stream = database.getStream(verificationDict['filename'])
+                if(stream != False):
+                        message = f'time:{time.time()} jumps:{0}'
+                        conn.send(message.encode())
+                else:
+                        result = verifyStreamInNeighbourHood(database, verificationDict['filename'],verificationDict['visited'])
+                        if len(result) == 0:
+                                message = f'NAK'
+                                conn.send(message.encode())
+                        else:
+                                for response in result:
+                                        metricsDict = {}
+                                        filename = ""
+                                        neighbour = ""
+                                        splitted = re.split(' ',response)
+                                        s = re.split(r':',splitted)
+                                        if s[0] == 'time':
+                                                metricsDict['time'] = float(s[1])
+                                        if s[0] == 'jumps':
+                                                metricsDict['jumps'] = float(s[1]) + 1
+                                        if s[0] == 'neighbour':
+                                                neighbour = neighbour + s[1]
+                                        if s[0] == 'filename':
+                                                filename = filename + s[1]
+                                        
+                                        
+                                        database.putRouteStreamDict(filename,neighbour,metricsDict)
+                                        
+
+
+
+                        
+                        
+
+
+            
+
+
+
 #Inizialize the connection with the server to get neighbours list
 
 def neighboursRequest(host_to_connect,database):
@@ -24,7 +146,6 @@ def neighboursRequest(host_to_connect,database):
         data = client_socket.recv(1024)  # receive response
 
         client_socket.close()  # close the connection
-
 
         neighboursParsed = []
 
@@ -49,45 +170,6 @@ def neighboursRequest(host_to_connect,database):
 
         Thread(target=receiveStatusServerNetwork, args = (database,)).start()
 
-# Initialize connection with neighbours
-
-def sendMessage(database):
-
-        for neighbour in database.getNeighbours():
-                neighbour_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-                while database.getConnection(neighbour) == False:
-                        try:
-                                neighbour_socket.connect((neighbour, 9999))
-
-                                data = neighbour_socket.recv(1024)  # receive response
-
-                                response = data.decode
-
-                                if(response == 'ACK'):
-                                        database.putConnection(neighbour,neighbour_socket)
-                                else:
-                                        break
-
-                        except:
-                                print('cant establish')
-                                pass
-                
-                
-
-# Listen connections 
-
-def listenNodesConnections(database):
-
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(('', 9999))  
-        server_socket.listen(10)
-        
-        for neighbour in database.getNeighbours():
-                print('listenning')
-                conn, address = server_socket.accept()  # accept new connection
-                data = conn.recv(1024).decode()
-                print(data, 'from ' + address[0])
                 
 
 def receiveStatusServerNetwork(database):
@@ -129,13 +211,7 @@ def receiveStatusServerNetwork(database):
                         connection['visited'] = visited
                 
                 #get my names
-                mynames = []
-                index = 0
-                for interface in netifaces.interfaces():
-                        if(index != 0):
-                                for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
-                                        mynames.append(link['addr'])
-                        index = index + 1
+                mynames = getMyNames()
 
                 #construct visited list with all node names
                 visited = ""
@@ -176,9 +252,9 @@ def receiveStatusServerNetwork(database):
                                         pass
                                         
 
-def server(port):
+def server(database):
     try:
-        SERVER_PORT = int(port)
+        SERVER_PORT = 7777
     except:
         print("[Usage: Server.py Server_port]\n")
     rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -188,9 +264,9 @@ def server(port):
     while True:
         clientInfo = {}
         clientInfo['rtspSocket'] = rtspSocket.accept()
-        ServerWorker.ServerWorker(clientInfo).run()           
+        ServerWorker.ServerWorker(clientInfo,database).run()           
 
-def clientConnections():
+def clientConnections(database):
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.bind(('', 2555))  
@@ -200,7 +276,7 @@ def clientConnections():
                 conn, address = server_socket.accept()  # accept new connection
                 port = conn.recv(1024).decode()
                 print(port, 'from ' + address[0])
-                Thread(target=server, args = (port,)).start()
+                Thread(target=server, args = (database)).start()
 
 
 if __name__ == '__main__':
@@ -208,7 +284,7 @@ if __name__ == '__main__':
         database = database.database()
         bootstrapper = sys.argv[1]
         Thread(target=neighboursRequest, args = (bootstrapper,database)).start()
-        Thread(target=clientConnections, args = ()).start()
+        Thread(target=clientConnections, args = (database,)).start()
        
         
         
