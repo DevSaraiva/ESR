@@ -6,12 +6,14 @@ class database:
     serverStatus : dict
     streamsDict : dict
     routeStreamDict : dict
+    i : int
 
     def __init__(self):
         self.neighbours = []
         self.neighboursConnection = {}
         self.serverStatus = {}
         self.streamsDict = {}
+        self.i = 0
 
     def putServersNeighbours(self,neighbours):
         self.serversNeighbours = neighbours
@@ -35,18 +37,68 @@ class database:
         if(streamName in self.streamsDict.keys()):
             return self.streamsDict[streamName]
         else:
-            return False 
+            return False
+    def getStreamState(self,streamName):
+            if(streamName in self.streamsDict.keys()):
+                return self.streamsDict[streamName]['state']
+            else: return False
     
-    #change
-    def putStream(self,streamName,metrics):
-        self.streamsDict[streamName] = metrics
+    def putStreamEmpty(self,streamName):
+        dic = {}
+        dic['queue'] = []
+        dic['state'] = 'activated'
+        self.streamsDict[streamName] = dic
+
+    def putStreamPacket(self,streamName,packet):
+        self.streamsDict[streamName]['queue'].append(packet)
+        self.i = self.i + 1
+        
+
+    def popStreamPacket(self,streamName):
+        if(len(self.streamsDict[streamName]['queue']) > 0):
+            return self.streamsDict[streamName]['queue'].pop(0)
+        else : return None
          
 
-    def putRouteStreamDict(self,filename,neighbour,metrics):
-            self.routeStreamDict[filename][neighbour] = metrics
+    def getBestMetricsServerStatus(self):
+        
+            timestamp = 9999999999
+            neighbourAux = ''
+            for neighbour in self.serverStatus.keys():
+                if self.serverStatus[neighbour]['timestamp'] < timestamp:
+                    neighbourAux = neighbour
+                    timestamp = self.serverStatus[neighbour]['timestamp'] 
+                #aproximadamente igual
+            
+            return neighbourAux
+    
+   
 
-    def getRouteStreamDict(self):
-            return self.routeStreamDict
+    def putRouteStreamDict(self,filename,neighbour,metrics):
+            if filename in self.routeStreamDict.keys:
+                self.routeStreamDict[filename][neighbour] = metrics
+            else :
+                self.routeStreamDict[filename] = {}
+                self.routeStreamDict[filename][neighbour] = metrics
+
+    
+    def getBestMetricsRouteStreamDict(self,filename):
+            dict =  self.routeStreamDict[filename]
+
+            timestamp = 9999999999
+            neighbourAux = ''
+            for neighbour in dict.keys():
+                if dict[neighbour]['timestamp'] < timestamp:
+                    neighbourAux = neighbour
+                    timestamp = dict[neighbour]['timestamp'] 
+                #aproximadamente igual
+            
+            return neighbourAux
+                
+            
+
+    def getMetricsRouteStreamDict(self,filename, neighbour):
+            return self.routeStreamDict[filename][neighbour]
             
 
 

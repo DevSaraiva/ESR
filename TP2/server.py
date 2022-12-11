@@ -76,7 +76,7 @@ def sendStatusServerNetwork(database):
 
 
             
-def readVideoFile(filename, b_database, ipReceiver):
+def readVideoFile(filename, b_database):
     print("Reading Video File and saving to database...")
     try:
         file = open(filename, 'rb')
@@ -97,23 +97,39 @@ def readVideoFile(filename, b_database, ipReceiver):
             data = file.read(frameLenght)
             buffer.append(data)
             frameNum += 1 
-        print(f"Frame number {frameNum} read")
         unread_FileSize_bytes = unread_FileSize_bytes - 5 - frameLenght
+    
+    
     b_database.setFile(buffer)  
-    sendVideoFile(ipReceiver, 2345, b_database)
+    
 
 
 
-def sendVideoFile(address, port, b_database):
-    print(f'Sending video file to node via port {port}')
-    send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    file = b_database.getFile()
-    i = 0
-    for pos in file:
-        #print(pos)
-        send_socket.sendto(pos, (address, port))
-        i += 1
-        print("i = " + str(i))
+
+def receiveStreamRequest(database):
+
+        udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        udpSocket.bind(('', 6666))
+
+        while(True):
+
+                msg , address = udpSocket.recvfrom(1024)
+
+                filename = msg.decode()
+
+                print(filename)
+
+                readVideoFile(filename, database)
+                
+                file = database.getFile()
+                
+                i = 0
+                for pos in file:
+                    sleep(0.1)
+                    udpSocket.sendto(pos, address)
+                    i += 1
+
+                   
 
 
 
@@ -121,9 +137,9 @@ if __name__ == '__main__':
 
     database = b_database.b_database()
     database.setTopo(readConfigFile(sys.argv[1]))
-    ipReceiver = sys.argv[3]
+    
 
     Thread(target=initializeConnections, args = (database,)).start()
     Thread(target=sendStatusServerNetwork, args = (database,)).start()
-    Thread(target=readVideoFile, args=(sys.argv[2], database, ipReceiver,)).start()    
+    Thread(target=receiveStreamRequest, args = (database,)).start()
     

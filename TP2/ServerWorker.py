@@ -3,6 +3,9 @@ import sys, traceback, threading, socket
 
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
+from oNode import verifyStreamInNeighbourHood
+from oNode import getStream
+
 
 class ServerWorker:
 	SETUP = 'SETUP'
@@ -21,14 +24,28 @@ class ServerWorker:
 	clientInfo = {}
 	
 
-	def getStream(database,filename):
+	
+	def __init__(self, clientInfo,database):
+		self.clientInfo = clientInfo
+		self.database = database
+		
+	def run(self):
+		threading.Thread(target=self.recvRtspRequest).start()
+
+
+	def getStreamLocation(self,filename):
 		
 		#verificar se já tem a stream
-		stream = database.getStream(filename)
+		stream = self.database.getStream(filename)
 
 		if(stream == False):
 			#verificar se os vizinhos tem a stream
-			pass
+			res = verifyStreamInNeighbourHood(self.database,filename,[])
+			
+			if len(res) == 0:
+				getStream(self.database,filename)
+
+
             
 
 		
@@ -37,14 +54,6 @@ class ServerWorker:
 
 
 
-
-
-	def __init__(self, clientInfo,database):
-		self.clientInfo = clientInfo
-		self.database = database
-		
-	def run(self):
-		threading.Thread(target=self.recvRtspRequest).start()
 	
 	def recvRtspRequest(self):
 		"""Receive RTSP request from the client."""
@@ -73,6 +82,9 @@ class ServerWorker:
 			if self.state == self.INIT:
 				# Update state
 				print("processing SETUP\n")
+
+				threading.Thread(target=self.getStreamLocation, args = (filename,)).start()
+				
 				
 				try:
 					self.clientInfo['videoStream'] = VideoStream(filename, self.database)

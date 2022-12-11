@@ -1,3 +1,6 @@
+
+from time import sleep
+
 class VideoStream:
 	def __init__(self, filename):
 		self.filename = filename
@@ -16,6 +19,7 @@ class VideoStream:
 			# Read the current frame
 			data = self.file.read(framelength)
 			self.frameNum += 1
+
 		return data
 		
 	def frameNbr(self):

@@ -10,9 +10,6 @@ import netifaces
 import ServerWorker
 
 
-
-
-
 def getMyNames():
         mynames = []
         index = 0
@@ -23,6 +20,61 @@ def getMyNames():
                 index = index + 1
         return mynames
 
+
+
+def getStream(database,filename):
+        #get best connection
+        #só está a considerar o servidor
+
+        print('getting stream')
+
+        bestNeighbour = database.getBestMetricsServerStatus()
+
+        database.putStreamEmpty(filename)
+
+        #sending request
+        msg       = f'{filename}'
+        udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        udpSocket.sendto(msg.encode(), (bestNeighbour,6666))
+        
+        
+        while True:
+                response,adress = udpSocket.recvfrom(10000)
+                print('receiving...')
+                database.putStreamPacket(filename,response)
+        
+        
+
+
+def receiveStreamRequest(database):
+
+        udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        udpSocket.bind(('', 6666))
+
+        while(True):
+
+                msg , address = udpSocket.recvfrom(10000)
+
+                filename = msg.decode()
+                
+                if database.getStream(filename) != False:
+                        pass
+                else:
+                        Thread(target=getStream, args = (database,filename)).start()        
+                        
+               
+                while database.getStreamState(filename) == False:
+                        pass
+                        
+                while database.getStreamState(filename) == 'activated':
+                        packet = database.popStreamPacket(filename)
+                        if(packet != None):
+                                udpSocket.sendto(packet,address)
+
+                print(msg.decode())
+                
+
+# Sending a reply to client
 
 def verifyStreamInNeighbourHood(database, filename,visited):
         
@@ -55,6 +107,7 @@ def verifyStreamInNeighbourHood(database, filename,visited):
                         stream_socket.send(message.encode())  # send message
 
                         response = stream_socket.recv(1024).decode()
+                        print(response)
 
                         
                         if response != 'NAK':
@@ -67,7 +120,7 @@ def verifyStreamInNeighbourHood(database, filename,visited):
 def receiveStreamVerification(database):
         
         verification_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        verification_socket.bind(('', 888))  
+        verification_socket.bind(('', 8888))  
         verification_socket.listen(10)
 
         while True:
@@ -76,9 +129,9 @@ def receiveStreamVerification(database):
                 data = conn.recv(1024)
 
                 msg = data.decode()
-
-               
                 
+                splitted = re.split(' ',msg)
+
                 verificationDict = {}
                 
                 for string in splitted:
@@ -94,6 +147,7 @@ def receiveStreamVerification(database):
                 #verificar se já tem a stream
 
                 stream = database.getStream(verificationDict['filename'])
+
                 if(stream != False):
                         message = f'time:{time.time()} jumps:{0}'
                         conn.send(message.encode())
@@ -111,6 +165,7 @@ def receiveStreamVerification(database):
                                         s = re.split(r':',splitted)
                                         if s[0] == 'time':
                                                 metricsDict['time'] = float(s[1])
+                                                metricsDict['timestamp'] = time.time() - float(s[1])
                                         if s[0] == 'jumps':
                                                 metricsDict['jumps'] = float(s[1]) + 1
                                         if s[0] == 'neighbour':
@@ -119,17 +174,14 @@ def receiveStreamVerification(database):
                                                 filename = filename + s[1]
                                         
                                         database.putRouteStreamDict(filename,neighbour,metricsDict)
+                                
+                                
+                                neighbour = database.getBestMetricsRouteStreamDict(verificationDict['filename'])
+                                metrics = database.getMetricsRouteStreamDict(verificationDict['filename'], neighbour)
+                                message = f'time:{metrics["time"]} jumps:{metrics["jumps"]}'
+                                conn.send(message.encode())
+
                                         
-
-
-
-                        
-                        
-
-
-            
-
-
 
 #Inizialize the connection with the server to get neighbours list
 
@@ -275,7 +327,7 @@ def clientConnections(database):
                 conn, address = server_socket.accept()  # accept new connection
                 port = conn.recv(1024).decode()
                 print(port, 'from ' + address[0])
-                Thread(target=server, args = (database)).start()
+                Thread(target=server, args = (database,)).start()
 
 
 
@@ -301,7 +353,10 @@ if __name__ == '__main__':
         bootstrapper = sys.argv[1]
         Thread(target=neighboursRequest, args = (bootstrapper,database)).start()
         Thread(target=clientConnections, args = (database,)).start()
-        Thread(target=receiveVideo, args= ('', 2345,)).start()
+        Thread(target=receiveStreamVerification, args = (database,)).start()
+        Thread(target=receiveStreamRequest, args = (database,)).start()        
+       
+
         
         
    
