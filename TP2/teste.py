@@ -26,16 +26,17 @@ def readVideoFile():
     print(f'File Size in Bytes is {unread_FileSize_bytes}')
     while (unread_FileSize_bytes ) > 0:
         data = file.read(5) # Get the framelength from the first 5 bytes
+        
         if data:
             frameLenght = int(data)
             #Read the current frame
             data = file.read(frameLenght)
-            print(data)
-            sleep(5)
             buffer.append(data)
             frameNum += 1 
-        unread_FileSize_bytes = unread_FileSize_bytes - 5 - frameLenght
+            print(len(data))
 
+        unread_FileSize_bytes = unread_FileSize_bytes - 5 - frameLenght
+        
     
 
 readVideoFile()

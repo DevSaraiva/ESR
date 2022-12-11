@@ -14,8 +14,6 @@ class VideoStream:
 	
 		nextframe = self.database.popStreamPacket(self.filename)
 		self.frameNum += 1
-
-		print(nextframe)
 		
 		return nextframe
 

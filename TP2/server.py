@@ -117,16 +117,15 @@ def receiveStreamRequest(database):
 
                 filename = msg.decode()
 
-                print(filename)
-
                 readVideoFile(filename, database)
                 
                 file = database.getFile()
                 
                 i = 0
-                for pos in file:
-                    sleep(0.1)
-                    udpSocket.sendto(pos, address)
+                for frame in file:
+                    print(i)
+                    sleep(0.0005)
+                    udpSocket.sendto(frame, address)
                     i += 1
 
                    

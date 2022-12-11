@@ -37,10 +37,11 @@ def getStream(database,filename):
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         udpSocket.sendto(msg.encode(), (bestNeighbour,6666))
         
-        
+        i = 0
         while True:
-                response,adress = udpSocket.recvfrom(10000)
-                print('receiving...')
+                response,adress = udpSocket.recvfrom(100000)
+                i = i +1
+                print(i)
                 database.putStreamPacket(filename,response)
         
         
@@ -53,7 +54,7 @@ def receiveStreamRequest(database):
 
         while(True):
 
-                msg , address = udpSocket.recvfrom(10000)
+                msg , address = udpSocket.recvfrom(100000)
 
                 filename = msg.decode()
                 
@@ -70,8 +71,6 @@ def receiveStreamRequest(database):
                         packet = database.popStreamPacket(filename)
                         if(packet != None):
                                 udpSocket.sendto(packet,address)
-
-                print(msg.decode())
                 
 
 # Sending a reply to client

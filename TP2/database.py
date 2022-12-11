@@ -51,13 +51,12 @@ class database:
 
     def putStreamPacket(self,streamName,packet):
         self.streamsDict[streamName]['queue'].append(packet)
-        self.i = self.i + 1
         
 
     def popStreamPacket(self,streamName):
-        if(len(self.streamsDict[streamName]['queue']) > 0):
+        try:
             return self.streamsDict[streamName]['queue'].pop(0)
-        else : return None
+        except: return None
          
 
     def getBestMetricsServerStatus(self):
