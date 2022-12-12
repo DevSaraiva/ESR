@@ -22,18 +22,27 @@ def getMyNames():
 
 
 
-def getStreamServer(database,filename):
-        #get best connection
-        #só está a considerar o servidor
+def getStream(database,filename,server):
 
         print('getting stream')
 
-        bestNeighbour = database.getBestMetricsServerStatus()
+        bestNeighbour = ''
+        if server == True:
+                bestNeighbour = database.getBestMetricsServerStatus()
+        else :
+                bestNeighbour = database.getBestMetricsRouteStreamDict(filename)
+
 
         database.putStreamEmpty(filename)
 
         #sending request
-        msg       = f'{filename}'
+        msg = ''
+        if server:
+                msg       = f'{filename} 1'
+        else :
+                msg       = f'{filename} 0'
+        
+        
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         udpSocket.sendto(msg.encode(), (bestNeighbour,6666))
         
@@ -47,7 +56,7 @@ def getStreamServer(database,filename):
         
 
 
-def receiveStreamServerRequest(database):
+def receiveStreamRequest(database):
 
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         udpSocket.bind(('', 6666))
@@ -56,12 +65,21 @@ def receiveStreamServerRequest(database):
 
                 msg , address = udpSocket.recvfrom(100000)
 
-                filename = msg.decode()
+                request = msg.decode()
+
+                splitted = re.split(' ',request)
+
+                filename = splitted[0]
+                server = splitted[1]
+
+                if server == '1':
+                                Thread(target=getStream, args = (database,filename,True)).start()  
                 
-                
-                Thread(target=getStreamServer, args = (database,filename)).start()        
+                else:
+                        if database.getNumberOfRouteStream(filename)  == 0:
                         
-               
+                                Thread(target=getStream, args = (database,filename,False)).start()  
+
                #wait until stream get in the current node
                
                 while database.getStreamState(filename) == False:
@@ -71,7 +89,12 @@ def receiveStreamServerRequest(database):
                         packet = database.popStreamPacket(filename)
                         if(packet != None):
                                 udpSocket.sendto(packet,address)
-                
+
+
+
+
+
+
 
 # Sending a reply to client
 
@@ -105,18 +128,17 @@ def verifyStreamInNeighbourHood(database, filename,visited):
                         stream_socket.send(message.encode())  # send message
 
                         response = stream_socket.recv(1024).decode()
-                        print(response)
                         
                         if response != 'NAK':
                                         metricsDict = {}
                                         splitted = re.split(' ',response)
-                                        print(splitted)
-                                        s = re.split(r':',splitted)
-                                        if s[0] == 'time':
-                                                metricsDict['time'] = float(s[1])
-                                                metricsDict['timestamp'] = time.time() - float(s[1])
-                                        if s[0] == 'jumps':
-                                                metricsDict['jumps'] = float(s[1]) + 1
+                                        for string in splitted:
+                                                s = re.split(r':',string)
+                                                if s[0] == 'time':
+                                                        metricsDict['time'] = float(s[1])
+                                                        metricsDict['timestamp'] = time.time() - float(s[1])
+                                                if s[0] == 'jumps':
+                                                        metricsDict['jumps'] = float(s[1]) + 1
                                        
                                         database.putRouteStreamDict(filename,neighbour,metricsDict)
                                
@@ -340,7 +362,7 @@ if __name__ == '__main__':
         Thread(target=neighboursRequest, args = (bootstrapper,database)).start()
         Thread(target=clientConnections, args = (database,)).start()
         Thread(target=receiveStreamVerification, args = (database,)).start()
-        Thread(target=receiveStreamServerRequest, args = (database,)).start()        
+        Thread(target=receiveStreamRequest, args = (database,)).start()        
        
 
         

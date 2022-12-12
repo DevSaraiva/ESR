@@ -74,7 +74,7 @@ class database:
    
 
     def putRouteStreamDict(self,filename,neighbour,metrics):
-            if filename in self.routeStreamDict.keys:
+            if filename in self.routeStreamDict.keys():
                 self.routeStreamDict[filename][neighbour] = metrics
             else :
                 self.routeStreamDict[filename] = {}
@@ -96,7 +96,7 @@ class database:
     
     def getNumberOfRouteStream(self,filename):
         if filename in self.routeStreamDict.keys():
-            return len([filename].keys())
+            return len(self.routeStreamDict[filename].keys())
         else: return 0
                 
             

@@ -7,6 +7,7 @@ import b_database
 from time import sleep
 import time
 import os
+import re
 
 
 def readConfigFile(topo):
@@ -115,18 +116,23 @@ def receiveStreamRequest(database):
 
                 msg , address = udpSocket.recvfrom(1024)
 
-                filename = msg.decode()
+                request = msg.decode()
+
+                splitted = re.split(' ',request)
+
+                filename = splitted[0]
 
                 readVideoFile(filename, database)
                 
                 file = database.getFile()
                 
                 i = 0
-                for frame in file:
-                    print(i)
-                    sleep(0.0005)
-                    udpSocket.sendto(frame, address)
-                    i += 1
+                while True:
+                    for frame in file:
+                        print(i)
+                        sleep(0.0005)
+                        udpSocket.sendto(frame, address)
+                        i += 1
 
                    
 

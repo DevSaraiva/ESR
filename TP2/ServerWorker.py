@@ -4,7 +4,7 @@ import sys, traceback, threading, socket
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
 from oNode import verifyStreamInNeighbourHood
-from oNode import getStreamServer
+from oNode import getStream
 
 
 class ServerWorker:
@@ -43,7 +43,9 @@ class ServerWorker:
 			verifyStreamInNeighbourHood(self.database,filename,[])
 			
 			if self.database.getNumberOfRouteStream(filename)  == 0:
-				getStreamServer(self.database,filename)
+				getStream(self.database,filename,True)
+			else :
+				getStream(self.database,filename,False)
 
 
             
