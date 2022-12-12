@@ -22,7 +22,7 @@ def getMyNames():
 
 
 
-def getStream(database,filename):
+def getStreamServer(database,filename):
         #get best connection
         #só está a considerar o servidor
 
@@ -47,7 +47,7 @@ def getStream(database,filename):
         
 
 
-def receiveStreamRequest(database):
+def receiveStreamServerRequest(database):
 
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         udpSocket.bind(('', 6666))
@@ -58,11 +58,11 @@ def receiveStreamRequest(database):
 
                 filename = msg.decode()
                 
-                if database.getStream(filename) != False:
-                        pass
-                else:
-                        Thread(target=getStream, args = (database,filename)).start()        
+                
+                Thread(target=getStreamServer, args = (database,filename)).start()        
                         
+               
+               #wait until stream get in the current node
                
                 while database.getStreamState(filename) == False:
                         pass
@@ -96,25 +96,31 @@ def verifyStreamInNeighbourHood(database, filename,visited):
                         else: visited = newvisited + ',' + name
                         index = index + 1
 
-        responses = []
 
         for neighbour in database.getNeighbours():
                 if neighbour not in visited:
                         stream_socket = socket.socket()  # instantiate
                         stream_socket.connect((neighbour, 8888))  # connect to the server
-                        message = f'filename:{filename} visited:{newvisited} '
+                        message = f'filename:{filename} visited:{newvisited}'
                         stream_socket.send(message.encode())  # send message
 
                         response = stream_socket.recv(1024).decode()
                         print(response)
-
                         
                         if response != 'NAK':
-                                responses.append(f'filename:{filename} neighbour:{neighbour} {response}')
+                                        metricsDict = {}
+                                        splitted = re.split(' ',response)
+                                        print(splitted)
+                                        s = re.split(r':',splitted)
+                                        if s[0] == 'time':
+                                                metricsDict['time'] = float(s[1])
+                                                metricsDict['timestamp'] = time.time() - float(s[1])
+                                        if s[0] == 'jumps':
+                                                metricsDict['jumps'] = float(s[1]) + 1
+                                       
+                                        database.putRouteStreamDict(filename,neighbour,metricsDict)
+                               
                         
-        
-        return responses
-
 
 def receiveStreamVerification(database):
         
@@ -151,30 +157,11 @@ def receiveStreamVerification(database):
                         message = f'time:{time.time()} jumps:{0}'
                         conn.send(message.encode())
                 else:
-                        result = verifyStreamInNeighbourHood(database, verificationDict['filename'],verificationDict['visited'])
-                        if len(result) == 0:
+                        verifyStreamInNeighbourHood(database, verificationDict['filename'],verificationDict['visited'])
+                        if database.getNumberOfRouteStream(verificationDict['filename']) == 0:
                                 message = f'NAK'
                                 conn.send(message.encode())
                         else:
-                                for response in result:
-                                        metricsDict = {}
-                                        filename = ""
-                                        neighbour = ""
-                                        splitted = re.split(' ',response)
-                                        s = re.split(r':',splitted)
-                                        if s[0] == 'time':
-                                                metricsDict['time'] = float(s[1])
-                                                metricsDict['timestamp'] = time.time() - float(s[1])
-                                        if s[0] == 'jumps':
-                                                metricsDict['jumps'] = float(s[1]) + 1
-                                        if s[0] == 'neighbour':
-                                                neighbour = neighbour + s[1]
-                                        if s[0] == 'filename':
-                                                filename = filename + s[1]
-                                        
-                                        database.putRouteStreamDict(filename,neighbour,metricsDict)
-                                
-                                
                                 neighbour = database.getBestMetricsRouteStreamDict(verificationDict['filename'])
                                 metrics = database.getMetricsRouteStreamDict(verificationDict['filename'], neighbour)
                                 message = f'time:{metrics["time"]} jumps:{metrics["jumps"]}'
@@ -353,7 +340,7 @@ if __name__ == '__main__':
         Thread(target=neighboursRequest, args = (bootstrapper,database)).start()
         Thread(target=clientConnections, args = (database,)).start()
         Thread(target=receiveStreamVerification, args = (database,)).start()
-        Thread(target=receiveStreamRequest, args = (database,)).start()        
+        Thread(target=receiveStreamServerRequest, args = (database,)).start()        
        
 
         

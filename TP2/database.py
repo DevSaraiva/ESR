@@ -1,19 +1,19 @@
 import socket
 
 class database:
-    neighbours : list
-    serversNeighbours : list
-    serverStatus : dict
-    streamsDict : dict
-    routeStreamDict : dict
-    i : int
+    neighbours : list #lista de neighbours
+    serversNeighbours : list #list of servers in neighbourhood
+    serverStatus : dict #metrics of server connection in neighbourhood
+    streamsDict : dict #dict of streams in the node
+    routeStreamDict : dict #metrics of streams in neighbourhood
+
 
     def __init__(self):
         self.neighbours = []
-        self.neighboursConnection = {}
         self.serverStatus = {}
         self.streamsDict = {}
-        self.i = 0
+        self.routeStreamDict = {}
+        self.metricsInNeighbourhood = {}
 
     def putServersNeighbours(self,neighbours):
         self.serversNeighbours = neighbours
@@ -93,11 +93,17 @@ class database:
                 #aproximadamente igual
             
             return neighbourAux
+    
+    def getNumberOfRouteStream(self,filename):
+        if filename in self.routeStreamDict.keys():
+            return len([filename].keys())
+        else: return 0
                 
             
 
     def getMetricsRouteStreamDict(self,filename, neighbour):
             return self.routeStreamDict[filename][neighbour]
+
             
 
 

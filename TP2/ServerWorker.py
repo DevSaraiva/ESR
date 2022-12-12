@@ -4,7 +4,7 @@ import sys, traceback, threading, socket
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
 from oNode import verifyStreamInNeighbourHood
-from oNode import getStream
+from oNode import getStreamServer
 
 
 class ServerWorker:
@@ -40,10 +40,10 @@ class ServerWorker:
 
 		if(stream == False):
 			#verificar se os vizinhos tem a stream
-			res = verifyStreamInNeighbourHood(self.database,filename,[])
+			verifyStreamInNeighbourHood(self.database,filename,[])
 			
-			if len(res) == 0:
-				getStream(self.database,filename)
+			if self.database.getNumberOfRouteStream(filename)  == 0:
+				getStreamServer(self.database,filename)
 
 
             
@@ -52,9 +52,6 @@ class ServerWorker:
 		#pedir ao servidor a stream
 
 
-
-
-	
 	def recvRtspRequest(self):
 		"""Receive RTSP request from the client."""
 		connSocket = self.clientInfo['rtspSocket'][0]
