@@ -2,7 +2,7 @@ node n1 {
     type router
     model host
     network-config {
-	hostname n1
+	hostname s1
 	!
 	interface eth0
 	 ip address 10.0.0.10/24
@@ -10,8 +10,8 @@ node n1 {
 	!
     }
     canvas c1
-    iconcoords {821.0 130.0}
-    labelcoords {821.0 162.0}
+    iconcoords {846.0 191.0}
+    labelcoords {846.0 223.0}
     interface-peer {eth0 n3}
 }
 
@@ -62,8 +62,8 @@ node n4 {
 	!
     }
     canvas c1
-    iconcoords {434.0 106.0}
-    labelcoords {434.0 138.0}
+    iconcoords {433.0 105.0}
+    labelcoords {433.0 137.0}
     interface-peer {eth0 n3}
     interface-peer {eth1 n6}
     interface-peer {eth2 n5}
@@ -105,7 +105,7 @@ node n6 {
     type router
     model PC
     network-config {
-	hostname n6
+	hostname c2
 	!
 	interface eth0
 	 ip address 10.0.4.20/24
@@ -122,7 +122,7 @@ node n7 {
     type router
     model PC
     network-config {
-	hostname n7
+	hostname c1
 	!
 	interface eth0
 	 ip address 10.0.5.20/24
@@ -139,7 +139,7 @@ node n2 {
     type router
     model host
     network-config {
-	hostname n2
+	hostname s2
 	!
 	interface eth0
 	 ip address 10.0.1.10/24
