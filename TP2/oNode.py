@@ -50,9 +50,8 @@ def getStream(database,filename,server):
         while True:
                 response,adress = udpSocket.recvfrom(100000)
                 i = i +1
-                print(i)
+                # print(i)
                 database.putStreamPacket(filename,response)
-        
         
 
 
@@ -72,25 +71,39 @@ def receiveStreamRequest(database):
                 filename = splitted[0]
                 server = splitted[1]
 
+
+                # ask recursively until reach server
                 if server == '1':
                                 Thread(target=getStream, args = (database,filename,True)).start()  
                 
-                else:
-                        if database.getNumberOfRouteStream(filename)  == 0:
-                        
+                # ask recursively until reach a neighbour with the stream
+                else:   
+                        #verify if the node doesnt have the stream
+                        stream = database.getStream(filename)
+                        if stream == False:
                                 Thread(target=getStream, args = (database,filename,False)).start()  
+                        else :
+                                print('já possui')
 
                #wait until stream get in the current node
-               
+
                 while database.getStreamState(filename) == False:
                         pass
+
+                Thread(target=receiveStreamRequestWorker, args = (database,filename,address,udpSocket)).start() 
+                
+
+
+def receiveStreamRequestWorker(database,filename,address,udpSocket):
+
+        receiverId = database.addStreamReceiver(filename)
+
+        print(receiverId)
                         
-                while database.getStreamState(filename) == 'activated':
-                        packet = database.popStreamPacket(filename)
-                        if(packet != None):
-                                udpSocket.sendto(packet,address)
-
-
+        while database.getStreamState(filename) == 'activated':
+                packet = database.popStreamPacket(filename,receiverId)
+                if(packet != None):
+                        udpSocket.sendto(packet,address)
 
 
 

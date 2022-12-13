@@ -1,4 +1,6 @@
 import socket
+import traceback
+
 
 class database:
     neighbours : list #lista de neighbours
@@ -47,16 +49,40 @@ class database:
         dic = {}
         dic['queue'] = []
         dic['state'] = 'activated'
+        dic['receivers'] = 0
+        dic['receiversDict'] = {}
         self.streamsDict[streamName] = dic
+
+    def addStreamReceiver(self,streamName):
+        try:
+            self.streamsDict[streamName]['receiversDict'][f'{self.streamsDict[streamName]["receivers"]}'] = 0
+            self.streamsDict[streamName]['receivers'] = self.streamsDict[streamName]['receivers'] + 1
+            print('addReceiver ' + streamName)
+            return f'{self.streamsDict[streamName]["receivers"] - 1}'
+        
+        except Exception: 
+            return False
 
     def putStreamPacket(self,streamName,packet):
         self.streamsDict[streamName]['queue'].append(packet)
         
 
-    def popStreamPacket(self,streamName):
+    def popStreamPacket(self,streamName,receiverID):
         try:
-            return self.streamsDict[streamName]['queue'].pop(0)
-        except: return None
+            print(receiverID)
+            if receiverID == -1 : 
+                return None
+            
+            if self.streamsDict[streamName]['receivers'] == 1:
+                # print(receiverID  + ' Pop')
+                return self.streamsDict[streamName]['queue'].pop(0)
+            else :
+                # print(receiverID  + ' notPop')
+                self.streamsDict[streamName]['receiversDict'][receiverID] = self.streamsDict[streamName]['receiversDict'][receiverID] +1 
+                return self.streamsDict[streamName]['queue'][self.streamsDict[streamName]['receiversDict'][receiverID] - 1]
+        except Exception: 
+            # print('EXCEPTION ',receiverID)
+            return None
          
 
     def getBestMetricsServerStatus(self):
