@@ -37,7 +37,6 @@ def initializeConnectionsWorker(conn,address,database):
         conn.close()  # close the connection
 
 
-    
 def initializeConnections(database):
     
     print('Inicializing Connections')
@@ -142,9 +141,10 @@ if __name__ == '__main__':
 
     database = b_database.b_database()
     database.setTopo(readConfigFile(sys.argv[1]))
-    
+    option = int(sys.argv[2])
 
-    Thread(target=initializeConnections, args = (database,)).start()
+    if(option==1):
+        Thread(target=initializeConnections, args = (database,option,)).start()
     Thread(target=sendStatusServerNetwork, args = (database,)).start()
     Thread(target=receiveStreamRequest, args = (database,)).start()
     
