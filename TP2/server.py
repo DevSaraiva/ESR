@@ -144,7 +144,7 @@ if __name__ == '__main__':
     option = int(sys.argv[2])
 
     if(option==1):
-        Thread(target=initializeConnections, args = (database,option,)).start()
+        Thread(target=initializeConnections, args = (database,)).start()
     Thread(target=sendStatusServerNetwork, args = (database,)).start()
     Thread(target=receiveStreamRequest, args = (database,)).start()
     
