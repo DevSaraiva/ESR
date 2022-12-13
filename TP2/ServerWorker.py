@@ -28,6 +28,7 @@ class ServerWorker:
 	def __init__(self, clientInfo,database):
 		self.clientInfo = clientInfo
 		self.database = database
+		self.receiverId = 0
 		
 	def run(self):
 		threading.Thread(target=self.recvRtspRequest).start()
@@ -47,11 +48,6 @@ class ServerWorker:
 			else :
 				getStream(self.database,filename,False)
 
-
-            
-
-		
-		#pedir ao servidor a stream
 
 
 	def recvRtspRequest(self):
@@ -86,6 +82,7 @@ class ServerWorker:
 				
 				
 				try:
+					
 					self.clientInfo['videoStream'] = VideoStream(filename, self.database)
 					self.state = self.READY
 				except IOError:
@@ -102,6 +99,9 @@ class ServerWorker:
 		
 		# Process PLAY request 		
 		elif requestType == self.PLAY:
+
+
+			
 			if self.state == self.READY:
 				print("processing PLAY\n")
 				self.state = self.PLAYING

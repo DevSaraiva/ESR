@@ -6,13 +6,20 @@ class VideoStream:
 		self.filename = filename
 		self.database = database
 		self.frameNum = 0
+		self.receiverId = -1
+		tryVar = False
+		while tryVar == False:
+			self.receiverId = database.addStreamReceiver(filename)
+			tryVar = self.receiverId
+			
 
 	def run(self):
 		pass
 	
 	def nextFrame(self):
 	
-		nextframe = self.database.popStreamPacket(self.filename)
+		print('videoStream ',self.receiverId)
+		nextframe = self.database.popStreamPacket(self.filename,self.receiverId)
 		self.frameNum += 1
 		
 		return nextframe

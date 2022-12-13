@@ -104,8 +104,6 @@ def readVideoFile(filename, b_database):
     
 
 
-
-
 def receiveStreamRequest(database):
 
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -134,8 +132,6 @@ def receiveStreamRequest(database):
                         i += 1
 
                    
-
-
 
 if __name__ == '__main__':
 
