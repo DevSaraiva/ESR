@@ -47,13 +47,18 @@ def getStream(database,filename,server):
         udpSocket.sendto(msg.encode(), (bestNeighbour,6666))
         
         i = 0
-        while True:
-                response,adress = udpSocket.recvfrom(100000)
-                i = i +1
-                # print(i)
-                database.putStreamPacket(filename,response)
         
-
+        while database.getStreamState(filename) == 'activated':
+                print(i)
+                response,adress = udpSocket.recvfrom(100000)
+                i = i + 1
+                for receiver in database.getStreamReceivers(filename):
+                        udpSocket.sendto(response,receiver)
+                for client in database.getStreamClients(filename):
+                        database.putStreamPacket(filename,client,response)
+        
+        
+        
 
 def receiveStreamRequest(database):
 
@@ -69,6 +74,7 @@ def receiveStreamRequest(database):
                 splitted = re.split(' ',request)
 
                 filename = splitted[0]
+                
                 server = splitted[1]
 
 
@@ -84,27 +90,15 @@ def receiveStreamRequest(database):
                                 Thread(target=getStream, args = (database,filename,False)).start()  
                         else :
                                 print('já possui')
+          
 
-               #wait until stream get in the current node
-
-                while database.getStreamState(filename) == False:
-                        pass
-
-                Thread(target=receiveStreamRequestWorker, args = (database,filename,address,udpSocket)).start() 
+                vartry = False
+                while vartry == False:
+                        vartry = database.addStreamReceiver(filename,address)
                 
 
 
-def receiveStreamRequestWorker(database,filename,address,udpSocket):
-
-        receiverId = database.addStreamReceiver(filename)
-
-        print(receiverId)
-                        
-        while database.getStreamState(filename) == 'activated':
-                packet = database.popStreamPacket(filename,receiverId)
-                if(packet != None):
-                        udpSocket.sendto(packet,address)
-
+                
 
 
 
@@ -349,21 +343,6 @@ def clientConnections(database):
                 port = conn.recv(1024).decode()
                 print(port, 'from ' + address[0])
                 Thread(target=server, args = (database,)).start()
-
-
-
-def receiveVideo(addr, port):
-        buffer = []
-        socket_receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        socket_receive.bind(('', port))
-        i = 0
-        while True:
-                data, address = socket_receive.recvfrom(1024)
-                i += 1
-                print("i = " + str(i))
-                buffer.append(data)
-                #print(str(data), flush=True)
-
 
 
 

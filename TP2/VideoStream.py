@@ -2,15 +2,16 @@
 from time import sleep
 
 class VideoStream:
-	def __init__(self, filename, database):
+	def __init__(self, filename, database, clientIp):
 		self.filename = filename
 		self.database = database
+		self.clientIp = clientIp
 		self.frameNum = 0
-		self.receiverId = -1
-		tryVar = False
-		while tryVar == False:
-			self.receiverId = database.addStreamReceiver(filename)
-			tryVar = self.receiverId
+		
+		vartry = False
+		while vartry == False:
+			vartry = database.addStreamClient(filename,clientIp)
+		
 			
 
 	def run(self):
@@ -18,8 +19,8 @@ class VideoStream:
 	
 	def nextFrame(self):
 	
-		print('videoStream ',self.receiverId)
-		nextframe = self.database.popStreamPacket(self.filename,self.receiverId)
+		
+		nextframe = self.database.popStreamPacket(self.filename,self.clientIp)
 		self.frameNum += 1
 		
 		return nextframe

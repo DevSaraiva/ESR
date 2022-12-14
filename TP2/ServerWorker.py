@@ -28,8 +28,9 @@ class ServerWorker:
 	def __init__(self, clientInfo,database):
 		self.clientInfo = clientInfo
 		self.database = database
-		self.receiverId = 0
-		
+		conn, adress = clientInfo['rtspSocket']
+		self.clientIp = adress[0]
+
 	def run(self):
 		threading.Thread(target=self.recvRtspRequest).start()
 
@@ -83,7 +84,7 @@ class ServerWorker:
 				
 				try:
 					
-					self.clientInfo['videoStream'] = VideoStream(filename, self.database)
+					self.clientInfo['videoStream'] = VideoStream(filename, self.database, self.clientIp)
 					self.state = self.READY
 				except IOError:
 					self.replyRtsp(self.FILE_NOT_FOUND_404, seq[1])

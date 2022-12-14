@@ -47,41 +47,44 @@ class database:
     
     def putStreamEmpty(self,streamName):
         dic = {}
-        dic['queue'] = []
         dic['state'] = 'activated'
-        dic['receivers'] = 0
-        dic['receiversDict'] = {}
+        dic['receivers'] = []
+        dic['clients'] = {}
         self.streamsDict[streamName] = dic
 
-    def addStreamReceiver(self,streamName):
+    def addStreamReceiver(self,streamName,ip):
         try:
-            self.streamsDict[streamName]['receiversDict'][f'{self.streamsDict[streamName]["receivers"]}'] = 0
-            self.streamsDict[streamName]['receivers'] = self.streamsDict[streamName]['receivers'] + 1
-            print('addReceiver ' + streamName)
-            return f'{self.streamsDict[streamName]["receivers"] - 1}'
-        
+            self.streamsDict[streamName]['receivers'].append(ip)
+        except Exception: 
+            return False
+    
+    def getStreamReceivers(self,streamName):
+        try:
+            return self.streamsDict[streamName]['receivers']
+            
         except Exception: 
             return False
 
-    def putStreamPacket(self,streamName,packet):
-        self.streamsDict[streamName]['queue'].append(packet)
+    
+    def addStreamClient(self,streamName,ip):
+        try:
+            self.streamsDict[streamName]['clients'][ip] = []
+        except :
+            return False
+
+    def getStreamClients(self,streamName):
+        return self.streamsDict[streamName]['clients'].keys()
+
+    
+    def putStreamPacket(self,streamName,ip,packet):
+        self.streamsDict[streamName]['clients'][ip].append(packet)
         
 
-    def popStreamPacket(self,streamName,receiverID):
+    def popStreamPacket(self,streamName,ip):
         try:
-            print(receiverID)
-            if receiverID == -1 : 
-                return None
-            
-            if self.streamsDict[streamName]['receivers'] == 1:
-                # print(receiverID  + ' Pop')
-                return self.streamsDict[streamName]['queue'].pop(0)
-            else :
-                # print(receiverID  + ' notPop')
-                self.streamsDict[streamName]['receiversDict'][receiverID] = self.streamsDict[streamName]['receiversDict'][receiverID] +1 
-                return self.streamsDict[streamName]['queue'][self.streamsDict[streamName]['receiversDict'][receiverID] - 1]
-        except Exception: 
-            # print('EXCEPTION ',receiverID)
+                return self.streamsDict[streamName]['clients'][ip].pop(0)
+        except Exception:
+            # traceback.print_exc()
             return None
          
 
