@@ -3,16 +3,19 @@ import sys
 from threading import Thread
 from Cliente import Client
 from tkinter import Tk
+import random
 
 def send(host_to_connect,filename):
         print(host_to_connect)
         client_socket = socket.socket()  # instantiate
         client_socket.connect((host_to_connect, 2555 ))  # connect to the server
-        client_socket.send(filename.encode())
+        port = random.randint(4000, 5000)
+        msg = f'{port}'
+        client_socket.send(msg.encode())
         
         root = Tk()
         # Create a new client
-        app = Client(root, host_to_connect, 7777, '5008', filename)
+        app = Client(root, host_to_connect, port, '5008', filename)
         app.master.title("RTPClient")	
         root.mainloop()
 

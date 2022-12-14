@@ -37,6 +37,8 @@ class ServerWorker:
 
 	def getStreamLocation(self,filename):
 		
+		self.filename = filename
+
 		#verificar se já tem a stream
 		stream = self.database.getStream(filename)
 
@@ -130,6 +132,8 @@ class ServerWorker:
 		# Process TEARDOWN request
 		elif requestType == self.TEARDOWN:
 			print("processing TEARDOWN\n")
+
+			self.database.removeStreamClient(self.filename,self.clientIp)
 
 			self.clientInfo['event'].set()
 			

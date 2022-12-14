@@ -2,10 +2,12 @@ class b_database:
     peersConnected : int
     topo : dict
     file : list
+    streams : dict 
 
     def __init__(self):
         self.peersConnected = 0
         self.file = []
+        self.streams = {}
 
     def getPeersConnected(self):
         return self.peersConnected
@@ -31,3 +33,20 @@ class b_database:
             if("s" not in key):
                 r = r + 1
         return r
+
+    def addStream(self,filename):
+        dic = {}
+        dic['state'] = 'activated'
+        dic['receivers'] = []
+        self.streams[filename] = dic
+
+    def getStreamState(self,filename):
+        return self.streams[filename]['state']
+
+    def changeStreamState(self,filename):
+        self.streams[filename]['state'] = 'disabled'
+        print('disabled')
+
+    
+    
+

@@ -52,10 +52,18 @@ def getStream(database,filename,server):
                 print(i)
                 response,adress = udpSocket.recvfrom(100000)
                 i = i + 1
-                for receiver in database.getStreamReceivers(filename):
-                        udpSocket.sendto(response,receiver)
-                for client in database.getStreamClients(filename):
-                        database.putStreamPacket(filename,client,response)
+                try:
+                        for receiver in database.getStreamReceivers(filename):
+                                print(receiver)
+                                udpSocket.sendto(response,receiver)
+                        for client in database.getStreamClients(filename):
+                                print(client)
+                                database.putStreamPacket(filename,client,response)
+                except:
+                        pass
+        
+        msg = f'{filename} TEARDOWN'
+        udpSocket.sendto(msg.encode(), (bestNeighbour,6666))
         
         
         
@@ -75,33 +83,34 @@ def receiveStreamRequest(database):
 
                 filename = splitted[0]
                 
-                server = splitted[1]
+                server = splitted[1] #or teardown
 
+                if server != 'TEARDOWN':
 
-                # ask recursively until reach server
-                if server == '1':
-                                Thread(target=getStream, args = (database,filename,True)).start()  
-                
-                # ask recursively until reach a neighbour with the stream
-                else:   
-                        #verify if the node doesnt have the stream
-                        stream = database.getStream(filename)
-                        if stream == False:
-                                Thread(target=getStream, args = (database,filename,False)).start()  
-                        else :
-                                print('já possui')
-          
-
-                vartry = False
-                while vartry == False:
-                        vartry = database.addStreamReceiver(filename,address)
+                        # ask recursively until reach server
+                        if server == '1':
+                                        Thread(target=getStream, args = (database,filename,True)).start()  
+                        
+                        # ask recursively until reach a neighbour with the stream
+                        else:   
+                                #verify if the node doesnt have the stream
+                                stream = database.getStream(filename)
+                                if stream == False:
+                                        Thread(target=getStream, args = (database,filename,False)).start()  
+                                else :
+                                        print('já possui')
                 
 
-
+                        vartry = False
+                        while vartry == False:
+                                vartry = database.addStreamReceiver(filename,address)
+                
+                else:
+                        database.removeStreamReceiver(filename,address)
                 
 
 
-
+                
 
 # Sending a reply to client
 
@@ -318,19 +327,20 @@ def receiveStatusServerNetwork(database):
                                         pass
                                         
 
-def server(database):
-    try:
-        SERVER_PORT = 7777
-    except:
-        print("[Usage: Server.py Server_port]\n")
-    rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    rtspSocket.bind(('', SERVER_PORT))
-    rtspSocket.listen(5)    
-    # Receive client info (address,port) through RTSP/TCP session
-    while True:
-        clientInfo = {}
-        clientInfo['rtspSocket'] = rtspSocket.accept()
-        ServerWorker.ServerWorker(clientInfo,database).run()           
+def server(database, port):
+        try:
+                SERVER_PORT = int(port)
+                rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                rtspSocket.bind(('', SERVER_PORT))
+                rtspSocket.listen(5)    
+                # Receive client info (address,port) through RTSP/TCP session
+                while True:
+                    clientInfo = {}
+                    clientInfo['rtspSocket'] = rtspSocket.accept()
+                    ServerWorker.ServerWorker(clientInfo,database).run()
+        
+        except:
+                print("[Usage: Server.py Server_port]\n")
 
 def clientConnections(database):
 
@@ -342,7 +352,7 @@ def clientConnections(database):
                 conn, address = server_socket.accept()  # accept new connection
                 port = conn.recv(1024).decode()
                 print(port, 'from ' + address[0])
-                Thread(target=server, args = (database,)).start()
+                Thread(target=server, args = (database,port)).start()
 
 
 

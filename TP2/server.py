@@ -65,7 +65,7 @@ def sendStatusServerNetwork(database):
             while connected == False: 
                 try:
                     status_socket.connect((neighbour, 4444))  # connect to the server
-                    message = f'servername:{myname} time:{time.time()} jumps:{0} visited:'
+                    message = f'servername:{myname} time:{time.time()} jumps:{1} visited:'
                     status_socket.send(message.encode())  # send message
                     connected = True
                     print('connected')
@@ -103,6 +103,20 @@ def readVideoFile(filename, b_database):
     b_database.setFile(buffer)  
     
 
+def receiveStreamRequestWorker(filename,address,database,udpSocket):
+    readVideoFile(filename, database)
+                    
+    file = database.getFile()
+                    
+    i = 0
+    while database.getStreamState(filename) == 'activated':
+        for frame in file:
+            print(i)
+            sleep(0.0005)
+            udpSocket.sendto(frame, address)
+            if database.getStreamState(filename) != 'activated' : break
+            i += 1
+
 
 def receiveStreamRequest(database):
 
@@ -119,17 +133,13 @@ def receiveStreamRequest(database):
 
                 filename = splitted[0]
 
-                readVideoFile(filename, database)
-                
-                file = database.getFile()
-                
-                i = 0
-                while True:
-                    for frame in file:
-                        print(i)
-                        sleep(0.0005)
-                        udpSocket.sendto(frame, address)
-                        i += 1
+                teardown = splitted[1]
+
+                if teardown != 'TEARDOWN':
+                    database.addStream(filename)
+                    Thread(target=receiveStreamRequestWorker, args = (filename,address,database,udpSocket)).start()
+                else:
+                    database.changeStreamState(filename)
 
                    
 

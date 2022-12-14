@@ -37,12 +37,18 @@ class database:
 
     def getStream(self,streamName):
         if(streamName in self.streamsDict.keys()):
-            return self.streamsDict[streamName]
+            if self.streamsDict[streamName]['state'] == 'activated': return self.streamsDict[streamName]
+            else: return False
         else:
             return False
     def getStreamState(self,streamName):
             if(streamName in self.streamsDict.keys()):
                 return self.streamsDict[streamName]['state']
+            else: return False
+
+    def changeStreamState(self,streamName,state):
+            if(streamName in self.streamsDict.keys()):
+                self.streamsDict[streamName]['state'] = state
             else: return False
     
     def putStreamEmpty(self,streamName):
@@ -54,7 +60,20 @@ class database:
 
     def addStreamReceiver(self,streamName,ip):
         try:
-            self.streamsDict[streamName]['receivers'].append(ip)
+            if self.streamsDict[streamName]['state'] == 'activated':
+                self.streamsDict[streamName]['receivers'].append(ip)
+            else : return False
+        except Exception: 
+            return False
+
+    def removeStreamReceiver(self,streamName,ip):
+        try:
+            self.streamsDict[streamName]['receivers'].remove(ip)
+
+            if len(self.streamsDict[streamName]['receivers']) == 0 and len(self.streamsDict[streamName]['clients'].keys()) == 0:
+                self.streamsDict[streamName]['state'] = 'disabled'
+                print(self.streamsDict[streamName]['state'])
+
         except Exception: 
             return False
     
@@ -68,7 +87,19 @@ class database:
     
     def addStreamClient(self,streamName,ip):
         try:
-            self.streamsDict[streamName]['clients'][ip] = []
+            if self.streamsDict[streamName]['state'] == 'activated':
+                self.streamsDict[streamName]['clients'][ip] = []
+            else: return False
+        except :
+            return False
+
+    def removeStreamClient(self,streamName,ip):
+        try:
+            self.streamsDict[streamName]['clients'].pop(ip, None)
+            if len(self.streamsDict[streamName]['receivers']) == 0 and len(self.streamsDict[streamName]['clients'].keys()) == 0:
+                self.streamsDict[streamName]['state'] = 'disabled'
+                print(self.streamsDict[streamName]['state'])
+            print('poped')
         except :
             return False
 
@@ -77,7 +108,11 @@ class database:
 
     
     def putStreamPacket(self,streamName,ip,packet):
-        self.streamsDict[streamName]['clients'][ip].append(packet)
+        
+        try:
+            self.streamsDict[streamName]['clients'][ip].append(packet)
+        except:
+            pass
         
 
     def popStreamPacket(self,streamName,ip):
