@@ -8,7 +8,7 @@ from time import sleep
 import time
 import os
 import re
-
+import cv2
 
 def readConfigFile(topo):
     print('reading config file ..')
@@ -74,30 +74,32 @@ def sendStatusServerNetwork(database):
                     pass
         sleep(15)
 
-
+vidcap = cv2.VideoCapture('big_buck_bunny_720p_5mb.mp4')
+success,image = vidcap.read()
+count = 0
+while success:
+  cv2.imwrite("frame%d.jpg" % count, image)     # save frame as JPEG file      
+  success,image = vidcap.read()
+  print('Read a new frame: ', success)
+  count += 1
             
 def readVideoFile(filename, b_database):
     print("Reading Video File and saving to database...")
     try:
-        file = open(filename, 'rb')
+        file = cv2.VideoCapture(filename)
     except:
         print("Error opening file!")
         raise IOError
-    frameNum = 0
+
     buffer = []
-    ###### Get next frame (nextFrame from VideoStream.py)
-    file_stats = os.stat(filename)
-    unread_FileSize_bytes = file_stats.st_size  #here it represents the total size of the file in bytes, because none was read untill now
-    print(f'File Size in Bytes is {unread_FileSize_bytes}')
-    while (unread_FileSize_bytes ) > 0:
-        data = file.read(5) # Get the framelength from the first 5 bytes
-        if data:
-            frameLenght = int(data)
-            #Read the current frame
-            data = file.read(frameLenght)
-            buffer.append(data)
-            frameNum += 1 
-        unread_FileSize_bytes = unread_FileSize_bytes - 5 - frameLenght
+    
+    success, data = file.read()
+    
+    while success:
+        frame = cv2.imencode('.jpg', data, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
+        buffer.append(frame)
+        success, data = file.read()
+        
     
     
     b_database.setFile(buffer)  
