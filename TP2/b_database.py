@@ -24,3 +24,10 @@ class b_database:
 
     def getFile(self):
         return self.file
+    
+    def getNumberPeer(self):
+        r=0
+        for key in self.topo:
+            if("s" not in key):
+                r = r + 1
+        return r

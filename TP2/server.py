@@ -30,8 +30,8 @@ def initializeConnectionsWorker(conn,address,database):
                     print('sendig neighbours to ' + key)
                     neighboursList = value['neighbours']
 
-            while(database.getPeersConnected() < len(database.getTopo().keys()) - 1):
-                sleep(1)
+            while(database.getPeersConnected() < database.getNumberPeer()):
+                pass
     
         conn.send(pickle.dumps(neighboursList))  # send data to the client
         conn.close()  # close the connection
