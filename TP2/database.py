@@ -168,14 +168,11 @@ class database:
     def getBestMetricsRouteStreamDict(self,filename):
             dict =  self.routeStreamDict[filename]
 
-            print('getttttttttttttttttttttttttttt',flush=True)
-
             timestamp = 9999999999
             neighbourAux = ''
             jumps = 9999999999
             for neighbour in dict.keys():
-                print(dict[neighbour]['timestamp'],timestamp)
-                if abs(dict[neighbour]['timestamp'] - timestamp) < 0.1 * min(dict[neighbour]['timestamp'],timestamp):
+                if (dict[neighbour]['timestamp'] - timestamp < 0.1 * dict[neighbour]['timestamp']) or (timestamp - dict[neighbour]['timestamp'] < 0.1 * dict[neighbour]['timestamp']):
                     if dict[neighbour]['jumps'] < jumps:
                         timestamp = dict[neighbour]['timestamp']
                         neighbourAux = neighbour
@@ -184,8 +181,6 @@ class database:
                     neighbourAux = neighbour
                     timestamp = dict[neighbour]['timestamp']
                     jumps = dict[neighbour]['jumps']
-
-                print(neighbour, neighbourAux,flush=True)
             
             return neighbourAux
     

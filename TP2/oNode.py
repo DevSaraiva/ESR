@@ -24,7 +24,7 @@ def getMyNames():
 
 def getStream(database,filename,comeFrom,server):
 
-        print('getting stream')
+        print('getting stream',flush=True)
 
         bestNeighbour = ''
         if server == True:
@@ -55,10 +55,10 @@ def getStream(database,filename,comeFrom,server):
                 i = i + 1
                 try:
                         for receiver in database.getStreamReceivers(filename):
-                                print(receiver)
+                                # print(receiver)
                                 udpSocket.sendto(response,receiver)
                         for client in database.getStreamClients(filename):
-                                print(client)
+                                # print(client)
                                 database.putStreamPacket(filename,client,response)
                 except:
                         pass
@@ -77,6 +77,8 @@ def receiveStreamRequest(database):
         while(True):
 
                 msg , address = udpSocket.recvfrom(100000)
+
+                print(address)
 
                 request = msg.decode()
 
@@ -99,7 +101,7 @@ def receiveStreamRequest(database):
                                 if stream == False:
                                         Thread(target=getStream, args = (database,filename,[],False)).start()  
                                 else :
-                                        print('já possui')
+                                        print('já possui', address)
                 
 
                         vartry = False
@@ -139,13 +141,15 @@ def verifyStreamInNeighbourHood(database, filename,visited):
 
         for neighbour in database.getNeighbours():
                 if neighbour not in visited:
+                        # print('verify', neighbour)
+                        # print(neighbour)
                         stream_socket = socket.socket()  # instantiate
                         stream_socket.connect((neighbour, 8888))  # connect to the server
                         message = f'filename:{filename} visited:{newvisited}'
                         stream_socket.send(message.encode())  # send message
 
                         response = stream_socket.recv(1024).decode()
-                        
+                        # print(response)
                         if response != 'NAK':
                                         metricsDict = {}
                                         splitted = re.split(' ',response)
@@ -255,11 +259,8 @@ def receiveStatusServerNetwork(database):
         status_socket.bind(('', 4444))  
         status_socket.listen(10)
 
-        while True:
-                print('receiving status',flush=True)
+        while True: 
                 conn, address = status_socket.accept()
-                print('received',flush=True)
-
                 # print('received from ',address[0],flush=True)
                 data = conn.recv(1024)
                 # print(data.decode(),flush=True)
@@ -313,7 +314,6 @@ def receiveStatusServerNetwork(database):
 
                 database.putConnectionServerStatus(address[0],connection)
                 
-                print(database.getConnectionServerStatus(address[0]))
                 message = f'servername:{connection["servername"]} time:{timeserver} jumps:{connection["jumps"] + 1} visited:{visited}'
 
                 for neighbour in database.getNeighbours():
