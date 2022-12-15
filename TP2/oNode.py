@@ -50,7 +50,7 @@ def getStream(database,filename,comeFrom,server):
         i = 0
         
         while database.getStreamState(filename) == 'activated':
-                print(i)
+                # print(i)
                 response,adress = udpSocket.recvfrom(100000)
                 i = i + 1
                 try:
@@ -101,7 +101,7 @@ def receiveStreamRequest(database):
                                 if stream == False:
                                         Thread(target=getStream, args = (database,filename,[],False)).start()  
                                 else :
-                                        print('já possui', address)
+                                        print('já possui depois do get', address)
                 
 
                         vartry = False
@@ -119,7 +119,10 @@ def receiveStreamRequest(database):
 
 def verifyStreamInNeighbourHood(database, filename,visited):
         
+
+         #get my names
         mynames = getMyNames()
+        #construct visited list with all node names
         newvisited = ""
         index = 0
         if len(visited) != 0:
@@ -135,7 +138,7 @@ def verifyStreamInNeighbourHood(database, filename,visited):
         else:
                 for name in mynames:
                         if index == 0 :newvisited = newvisited + name
-                        else: visited = newvisited + ',' + name
+                        else: newvisited = newvisited + ',' + name
                         index = index + 1
 
 
@@ -146,9 +149,10 @@ def verifyStreamInNeighbourHood(database, filename,visited):
                         stream_socket = socket.socket()  # instantiate
                         stream_socket.connect((neighbour, 8888))  # connect to the server
                         message = f'filename:{filename} visited:{newvisited}'
+                        sendTime = time.time()
                         stream_socket.send(message.encode())  # send message
-
                         response = stream_socket.recv(1024).decode()
+                        receiveTime = time.time()
                         # print(response)
                         if response != 'NAK':
                                         metricsDict = {}
@@ -197,6 +201,7 @@ def receiveStreamVerification(database):
                 stream = database.getStream(verificationDict['filename'])
 
                 if(stream != False):
+                        print('já possui verificação', address)
                         message = f'time:{time.time()} jumps:{0}'
                         conn.send(message.encode())
                 else:
@@ -207,6 +212,7 @@ def receiveStreamVerification(database):
                         else:
                                 neighbour = database.getBestMetricsRouteStreamDict(verificationDict['filename'])
                                 metrics = database.getMetricsRouteStreamDict(verificationDict['filename'], neighbour)
+                                print(metrics["time"])
                                 message = f'time:{metrics["time"]} jumps:{metrics["jumps"]}'
                                 conn.send(message.encode())
 

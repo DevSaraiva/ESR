@@ -140,6 +140,7 @@ class database:
             jumps = 9999999999
             for neighbour in self.serverStatus.keys():
                 if(neighbour not in comeFrom):
+                    print(self.serverStatus[neighbour]['timestamp'] , timestamp)
                     if abs(self.serverStatus[neighbour]['timestamp'] - timestamp) < 0.1 * min(self.serverStatus[neighbour]['timestamp'],timestamp):
                         if (self.serverStatus[neighbour]['jumps'] < jumps):
                             neighbourAux = neighbour
@@ -151,7 +152,7 @@ class database:
                         jumps = self.serverStatus[neighbour]['jumps']
                 
                 
-        
+                    print(neighbour,neighbourAux)
                 
             return neighbourAux
     
@@ -172,7 +173,8 @@ class database:
             neighbourAux = ''
             jumps = 9999999999
             for neighbour in dict.keys():
-                if (dict[neighbour]['timestamp'] - timestamp < 0.1 * dict[neighbour]['timestamp']) or (timestamp - dict[neighbour]['timestamp'] < 0.1 * dict[neighbour]['timestamp']):
+                print(dict[neighbour]['timestamp'] , timestamp)
+                if (abs(dict[neighbour]['timestamp'] - timestamp) < 0.1 * timestamp):
                     if dict[neighbour]['jumps'] < jumps:
                         timestamp = dict[neighbour]['timestamp']
                         neighbourAux = neighbour
@@ -181,6 +183,8 @@ class database:
                     neighbourAux = neighbour
                     timestamp = dict[neighbour]['timestamp']
                     jumps = dict[neighbour]['jumps']
+                
+                print(neighbour,neighbourAux)
             
             return neighbourAux
     
