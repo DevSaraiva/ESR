@@ -11,14 +11,14 @@ import re
 import cv2
 import traceback
 
-
+#leitura do ficheiro de configuração da topologia
 def readConfigFile(topo):
     print('reading config file ..')
     with open(topo) as json_file:
         data = json.load(json_file)
     return data
 
-
+#funçaõ responsável por establecer uma conexão
 def initializeConnectionsWorker(conn,address,database):
     
         database.addPeerConnected()
@@ -31,14 +31,14 @@ def initializeConnectionsWorker(conn,address,database):
                 if address[0] in value['names']:
                     print('sendig neighbours to ' + key)
                     neighboursList = value['neighbours']
-
-            while(database.getPeersConnected() < database.getNumberPeer()):
+            #verifica se todos os nodos já se encontram conectados    
+            while(database.getPeersConnected() < database.getNumberPeer()): 
                 pass
     
         conn.send(pickle.dumps(neighboursList))  # send data to the client
         conn.close()  # close the connection
 
-
+#função responsável pelo establecimento de todas conexões
 def initializeConnections(database):
     
     print('Inicializing Connections')
@@ -54,7 +54,7 @@ def initializeConnections(database):
         conn, address = server_socket.accept()  # accept new connection
         Thread(target=initializeConnectionsWorker, args = (conn,address,database)).start()
     
-
+#função responsável por monitorizar a rede overlay
 def sendStatusServerNetwork(database):
     
     
@@ -86,10 +86,10 @@ def receiveStreamRequestWorker(filename,address,database,udpSocket):
       
     i = 0
 
-    while database.getStreamState(filename) == 'activated':
+    while database.getStreamState(filename) == 'activated': #verificar se a stream ainda se encontra ativada
 
         try:
-            file = cv2.VideoCapture(filename)
+            file = cv2.VideoCapture(filename) #open file
         except:
             print("Error opening file!")
             raise IOError
@@ -98,8 +98,8 @@ def receiveStreamRequestWorker(filename,address,database,udpSocket):
         
         while success:
             print(i)
-            frame = cv2.imencode('.jpg', data, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
-            udpSocket.sendto(frame, address)
+            frame = cv2.imencode('.jpg', data, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes() # leitura de uma frame
+            udpSocket.sendto(frame, address) #envio de cada frame
             if database.getStreamState(filename) != 'activated' : break
             i += 1
             success, data = file.read()
@@ -108,7 +108,7 @@ def receiveStreamRequestWorker(filename,address,database,udpSocket):
             
             
 
-
+#função responsável por atender a pedidos de stream
 def receiveStreamRequest(database):
 
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -116,13 +116,13 @@ def receiveStreamRequest(database):
 
         while(True):
 
-                msg , address = udpSocket.recvfrom(1024)
+                msg , address = udpSocket.recvfrom(1024) #receber pedido
 
                 request = msg.decode()
 
                 splitted = re.split(' ',request)
 
-                filename = splitted[0]
+                filename = splitted[0] # nome do ficheiro de pedido
 
                 teardown = splitted[1]
 
