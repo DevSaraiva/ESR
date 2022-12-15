@@ -1,5 +1,6 @@
 import socket
 import traceback
+from time import sleep
 
 
 class database:
@@ -30,7 +31,16 @@ class database:
         return self.neighbours
 
     def putConnectionServerStatus(self,neighbour,connection):
-        self.serverStatus[neighbour] = connection
+
+        if neighbour in  self.serverStatus.keys():
+            if self.serverStatus[neighbour]['servername'] != connection['servername']:
+                if abs(self.serverStatus[neighbour]['timestamp'] - connection['timestamp']) < 0.1 * min(self.serverStatus[neighbour]['timestamp'],connection['timestamp']):
+                        if (self.serverStatus[neighbour]['jumps'] > connection['jumps']):
+                            self.serverStatus[neighbour] = connection          
+                elif self.serverStatus[neighbour]['timestamp'] > connection['timestamp']:
+                    self.serverStatus[neighbour] = connection 
+        else:
+            self.serverStatus[neighbour] = connection
 
     def getConnectionServerStatus(self,neighbour):
         return self.serverStatus[neighbour]
@@ -130,7 +140,7 @@ class database:
             jumps = 9999999999
             for neighbour in self.serverStatus.keys():
                 if(neighbour not in comeFrom):
-                    if (self.serverStatus[neighbour]['timestamp'] - timestamp < 0.1 * self.serverStatus[neighbour]['timestamp']) or (timestamp - self.serverStatus[neighbour]['timestamp'] < 0.1 * self.serverStatus[neighbour]['timestamp']):
+                    if abs(self.serverStatus[neighbour]['timestamp'] - timestamp) < 0.1 * min(self.serverStatus[neighbour]['timestamp'],timestamp):
                         if (self.serverStatus[neighbour]['jumps'] < jumps):
                             neighbourAux = neighbour
                             timestamp = self.serverStatus[neighbour]['timestamp']
@@ -139,6 +149,9 @@ class database:
                         neighbourAux = neighbour
                         timestamp = self.serverStatus[neighbour]['timestamp'] 
                         jumps = self.serverStatus[neighbour]['jumps']
+                
+                
+        
                 
             return neighbourAux
     
@@ -155,11 +168,14 @@ class database:
     def getBestMetricsRouteStreamDict(self,filename):
             dict =  self.routeStreamDict[filename]
 
+            print('getttttttttttttttttttttttttttt',flush=True)
+
             timestamp = 9999999999
             neighbourAux = ''
             jumps = 9999999999
             for neighbour in dict.keys():
-                if (dict[neighbour]['timestamp'] - timestamp < 0.1 * dict[neighbour]['timestamp']) or (timestamp - dict[neighbour]['timestamp'] < 0.1 * dict[neighbour]['timestamp']):
+                print(dict[neighbour]['timestamp'],timestamp)
+                if abs(dict[neighbour]['timestamp'] - timestamp) < 0.1 * min(dict[neighbour]['timestamp'],timestamp):
                     if dict[neighbour]['jumps'] < jumps:
                         timestamp = dict[neighbour]['timestamp']
                         neighbourAux = neighbour
@@ -168,6 +184,8 @@ class database:
                     neighbourAux = neighbour
                     timestamp = dict[neighbour]['timestamp']
                     jumps = dict[neighbour]['jumps']
+
+                print(neighbour, neighbourAux,flush=True)
             
             return neighbourAux
     

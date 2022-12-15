@@ -9,6 +9,8 @@ import time
 import os
 import re
 import cv2
+import traceback
+
 
 def readConfigFile(topo):
     print('reading config file ..')
@@ -55,24 +57,28 @@ def initializeConnections(database):
 
 def sendStatusServerNetwork(database):
     
-    status_socket = socket.socket()  # instantiate
+    
     myname = socket.gethostname()
     neighbours = database.getTopo()[myname]['neighbours']
+    i = 0
     while True:
 
+        print('sending status')
         for neighbour in neighbours:
             connected = False
             while connected == False: 
                 try:
+                    status_socket = socket.socket()  # instantiate
                     status_socket.connect((neighbour, 4444))  # connect to the server
                     message = f'servername:{myname} time:{time.time()} jumps:{1} visited:'
                     status_socket.send(message.encode())  # send message
                     connected = True
                     print('connected')
+                    i = i + 1
                     
                 except:
                     pass
-        sleep(15)
+        sleep(30)
 
     
 

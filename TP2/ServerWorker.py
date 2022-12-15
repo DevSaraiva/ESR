@@ -45,8 +45,11 @@ class ServerWorker:
 		if(stream == False):
 			#verificar se os vizinhos tem a stream
 			verifyStreamInNeighbourHood(self.database,filename,[])
+
+			print('passou')
 			
 			if self.database.getNumberOfRouteStream(filename)  == 0:
+				print('SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR SERVIDOR')
 				getStream(self.database,filename,[],True)
 			else :
 				getStream(self.database,filename,[],False)

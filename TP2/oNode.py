@@ -250,13 +250,15 @@ def neighboursRequest(host_to_connect,database):
 
 def receiveStatusServerNetwork(database):
 
-        print('receiving status',flush=True)
+        
         status_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         status_socket.bind(('', 4444))  
         status_socket.listen(10)
 
         while True:
+                print('receiving status',flush=True)
                 conn, address = status_socket.accept()
+                print('received',flush=True)
 
                 # print('received from ',address[0],flush=True)
                 data = conn.recv(1024)
