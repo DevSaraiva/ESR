@@ -54,6 +54,7 @@ def initializeConnections(database):
         conn, address = server_socket.accept()  # accept new connection
         Thread(target=initializeConnectionsWorker, args = (conn,address,database)).start()
     
+
 #função responsável por monitorizar a rede overlay
 def sendStatusServerNetwork(database):
     
@@ -81,7 +82,7 @@ def sendStatusServerNetwork(database):
         sleep(30)
 
     
-
+# receber um pedido de stream pelo worker e tratar o envio
 def receiveStreamRequestWorker(filename,address,database,udpSocket):
       
     i = 0
@@ -140,7 +141,7 @@ if __name__ == '__main__':
     database.setTopo(readConfigFile(sys.argv[1]))
     option = int(sys.argv[2])
 
-    if(option==1):
+    if(option==1):      # valor 1 indica que é o bootstrapper, caso o valor seja 0 é um servidor normal
         Thread(target=initializeConnections, args = (database,)).start()
     Thread(target=sendStatusServerNetwork, args = (database,)).start()
     Thread(target=receiveStreamRequest, args = (database,)).start()
