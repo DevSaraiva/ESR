@@ -123,21 +123,22 @@ class database:
             return None
          
 
-    def getBestMetricsServerStatus(self):
+    def getBestMetricsServerStatus(self,comeFrom):
         
             timestamp = 9999999999
             neighbourAux = ''
             jumps = 9999999999
             for neighbour in self.serverStatus.keys():
-                if (self.serverStatus[neighbour]['timestamp'] - timestamp < 0.1 * self.serverStatus[neighbour]['timestamp']) or (timestamp - self.serverStatus[neighbour]['timestamp'] < 0.1 * self.serverStatus[neighbour]['timestamp']):
-                    if (self.serverStatus[neighbour]['jumps'] < jumps):
+                if(neighbour not in comeFrom):
+                    if (self.serverStatus[neighbour]['timestamp'] - timestamp < 0.1 * self.serverStatus[neighbour]['timestamp']) or (timestamp - self.serverStatus[neighbour]['timestamp'] < 0.1 * self.serverStatus[neighbour]['timestamp']):
+                        if (self.serverStatus[neighbour]['jumps'] < jumps):
+                            neighbourAux = neighbour
+                            timestamp = self.serverStatus[neighbour]['timestamp']
+                            jumps = self.serverStatus[neighbour]['jumps']    
+                    elif self.serverStatus[neighbour]['timestamp'] < timestamp:
                         neighbourAux = neighbour
-                        timestamp = self.serverStatus[neighbour]['timestamp']
-                        jumps = self.serverStatus[neighbour]['jumps']    
-                elif self.serverStatus[neighbour]['timestamp'] < timestamp:
-                    neighbourAux = neighbour
-                    timestamp = self.serverStatus[neighbour]['timestamp'] 
-                    jumps = self.serverStatus[neighbour]['jumps']
+                        timestamp = self.serverStatus[neighbour]['timestamp'] 
+                        jumps = self.serverStatus[neighbour]['jumps']
                 
             return neighbourAux
     

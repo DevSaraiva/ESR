@@ -74,50 +74,33 @@ def sendStatusServerNetwork(database):
                     pass
         sleep(15)
 
-vidcap = cv2.VideoCapture('big_buck_bunny_720p_5mb.mp4')
-success,image = vidcap.read()
-count = 0
-while success:
-  cv2.imwrite("frame%d.jpg" % count, image)     # save frame as JPEG file      
-  success,image = vidcap.read()
-  print('Read a new frame: ', success)
-  count += 1
-            
-def readVideoFile(filename, b_database):
-    print("Reading Video File and saving to database...")
-    try:
-        file = cv2.VideoCapture(filename)
-    except:
-        print("Error opening file!")
-        raise IOError
-
-    buffer = []
-    
-    success, data = file.read()
-    
-    while success:
-        frame = cv2.imencode('.jpg', data, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
-        buffer.append(frame)
-        success, data = file.read()
-        
-    
-    
-    b_database.setFile(buffer)  
     
 
 def receiveStreamRequestWorker(filename,address,database,udpSocket):
-    readVideoFile(filename, database)
-                    
-    file = database.getFile()
-                    
+      
     i = 0
+
     while database.getStreamState(filename) == 'activated':
-        for frame in file:
+
+        try:
+            file = cv2.VideoCapture(filename)
+        except:
+            print("Error opening file!")
+            raise IOError
+        
+        success, data = file.read()
+        
+        while success:
             print(i)
-            sleep(0.0005)
+            frame = cv2.imencode('.jpg', data, [cv2.IMWRITE_JPEG_QUALITY, 90])[1].tobytes()
             udpSocket.sendto(frame, address)
             if database.getStreamState(filename) != 'activated' : break
             i += 1
+            success, data = file.read()
+            sleep(0.0005)
+            
+            
+            
 
 
 def receiveStreamRequest(database):

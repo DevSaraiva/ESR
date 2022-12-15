@@ -22,13 +22,13 @@ def getMyNames():
 
 
 
-def getStream(database,filename,server):
+def getStream(database,filename,comeFrom,server):
 
         print('getting stream')
 
         bestNeighbour = ''
         if server == True:
-                bestNeighbour = database.getBestMetricsServerStatus()
+                bestNeighbour = database.getBestMetricsServerStatus(comeFrom)
         else :
                 bestNeighbour = database.getBestMetricsRouteStreamDict(filename)
 
@@ -42,6 +42,7 @@ def getStream(database,filename,server):
         else :
                 msg       = f'{filename} 0'
         
+        print(bestNeighbour)
         
         udpSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         udpSocket.sendto(msg.encode(), (bestNeighbour,6666))
@@ -89,14 +90,14 @@ def receiveStreamRequest(database):
 
                         # ask recursively until reach server
                         if server == '1':
-                                        Thread(target=getStream, args = (database,filename,True)).start()  
+                                        Thread(target=getStream, args = (database,filename,[address[0]],True)).start()  
                         
                         # ask recursively until reach a neighbour with the stream
                         else:   
                                 #verify if the node doesnt have the stream
                                 stream = database.getStream(filename)
                                 if stream == False:
-                                        Thread(target=getStream, args = (database,filename,False)).start()  
+                                        Thread(target=getStream, args = (database,filename,[],False)).start()  
                                 else :
                                         print('já possui')
                 

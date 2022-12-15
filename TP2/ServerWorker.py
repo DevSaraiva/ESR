@@ -47,9 +47,9 @@ class ServerWorker:
 			verifyStreamInNeighbourHood(self.database,filename,[])
 			
 			if self.database.getNumberOfRouteStream(filename)  == 0:
-				getStream(self.database,filename,True)
+				getStream(self.database,filename,[],True)
 			else :
-				getStream(self.database,filename,False)
+				getStream(self.database,filename,[],False)
 
 
 
@@ -80,6 +80,7 @@ class ServerWorker:
 			if self.state == self.INIT:
 				# Update state
 				print("processing SETUP\n")
+
 
 				threading.Thread(target=self.getStreamLocation, args = (filename,)).start()
 				
